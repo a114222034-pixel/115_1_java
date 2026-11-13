@@ -2,10 +2,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+// 類別：MissionLog (第 4 週探測車任務日誌)
+// 意義：一次火星探測車任務的完整程式；任務規則沿用第 3 週，本週新增「逐筆記錄每一步」。
+// 作用：依固定腳本執行指令，用三條 ArrayList 分別記下每一步的指令、能源、結果，
+//       最後印出回放、指令次數、摘要與最終狀態。
+// 目前狀態（能源、樣本、行動次數）仍是方法裡的具名變數，方便和第 3 週對照。
 // 同一任務規則，只新增逐筆保存；目前狀態維持具名變數，方便銜接第三週。
 public class MissionLog {
+    // main：程式進入點。準備固定腳本 {1, 1, 2}（探索、探索、掃描），
+    // 以能源 20、樣本 0 開始執行一次任務。
     public static void main(String[] args) {
-        int[] script = {1, 1, 2}; // 探索 → 探索 → 掃描。
+        int[] script = {1, 1, 1, 1, 0}; // 探索 → 探索 → 掃描。
         runMission(script, 20, 0);
     }
 
@@ -63,6 +70,9 @@ public class MissionLog {
                     break;
             }
             // TODO 2：把 command、energy、result 加到對應清單，拒絕與返回也要記錄。
+            commandLog.add(command);
+            energyLog.add(energy);
+            resultLog.add(result);
         }
 
         String outcome;
@@ -87,6 +97,11 @@ public class MissionLog {
     static int[] countCommands(ArrayList<Integer> commandLog) {
         int[] counts = new int[4];
         // TODO 1：走訪 commandLog；指令在 0..3 才增加 counts[command]。
+        for (int command : commandLog) {
+            if (command >= 0 && command < counts.length) {
+                counts[command]++;
+            }
+        }
         return counts;
     }
 
@@ -94,14 +109,29 @@ public class MissionLog {
             ArrayList<String> resultLog) {
         System.out.println("=== replay ===");
         // TODO 3：用相同索引讀三條清單，格式見講義 E。
+        for (int i = 0; i < commandLog.size(); i++) {
+            System.out.println("步驟 " + (i + 1) + ": 指令=" + commandLog.get(i)
+                    + ", 結果=" + resultLog.get(i) + ", 能源=" + energyLog.get(i));
+        }
     }
 
     static void printSummary(int scriptLength, ArrayList<Integer> energyLog,
             ArrayList<String> resultLog) {
         // TODO 4：用 frequency 計算 OK、RETURN，印出 steps、ok、rejected、ignored。
-        System.out.println("TODO 4: summary");
+        int steps = resultLog.size();
+        int ok = Collections.frequency(resultLog, "OK");
+        int returned = Collections.frequency(resultLog, "RETURN");
+        int rejected = steps - ok - returned;
+        int ignored = scriptLength - steps;
+        System.out.println("steps=" + steps + ", ok=" + ok
+                + ", rejected=" + rejected + ", ignored=" + ignored);
+
         // TODO 5：先用 isEmpty 判斷；空清單印 N/A，否則用 min 印最小能源。
-        System.out.println("TODO 5: lowest energy");
+        if (energyLog.isEmpty()) {
+            System.out.println("lowest energy=N/A");
+        } else {
+            System.out.println("lowest energy=" + Collections.min(energyLog));
+        }
     }
 
     static double calculateBatteryPercent(int energy) {
